@@ -1,4 +1,4 @@
-import redux from "redux";
+import { createStore } from "redux";
 
 const counterReducer = (state = { counter: 0 }, action) => {
   switch (action.type) {
@@ -11,21 +11,17 @@ const counterReducer = (state = { counter: 0 }, action) => {
       return {
         counter: state.counter - 1,
       };
-    case "increment2":
+    case "incrementby5":
       return {
-        counter: state.counter + 2,
+        counter: state.counter + 5,
       };
 
-    case "decrement2":
-      return {
-        counter: state.counter - 2,
-      };
     default: {
       return state;
     }
   }
 };
 
-const store = redux.createStore(counterReducer);
+const store = createStore(counterReducer);
 
 export default store;
