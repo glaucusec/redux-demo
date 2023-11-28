@@ -1,11 +1,10 @@
 import classes from "./Auth.module.css";
 
-import { useSelector, useDispatch } from "react-redux";
-import { authActions } from "../store";
+import { useDispatch } from "react-redux";
+import { authActions } from "../store/auth";
 
 const Auth = () => {
   const dispatch = useDispatch();
-  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   const formSubmitHandler = (e) => {
     e.preventDefault();
