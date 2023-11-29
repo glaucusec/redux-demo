@@ -1,56 +1,84 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import Cart from "./components/Cart/Cart";
 import Layout from "./components/Layout/Layout";
 import Products from "./components/Shop/Products";
 import Notification from "./components/UI/Notification";
-import axios from "axios"; // Import Axios
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { uiActions } from "./store/ui";
+import { cartActions } from "./store/cart-slice";
+import { fetchCartData } from "./store/cart-actions";
 
 import { useSelector } from "react-redux";
 
+let isInitial = true;
+
 function App() {
-  const [status, setStatus] = useState();
+  const dispatch = useDispatch();
+  const notification = useSelector((state) => state.ui.notification);
   const ui = useSelector((state) => state.ui);
   const cart = useSelector((state) => state.cart);
-  console.log(cart);
 
   useEffect(() => {
     async function sendCartData() {
-      setStatus("sending");
       try {
-        if (cart.items.length > 0) {
-          await axios.put(
-            "https://expense-tracker-fire-default-rtdb.firebaseio.com/cart.json",
-            cart
-          );
-        }
+        dispatch(
+          uiActions.showNotification({
+            status: "pending",
+            title: "Sending",
+            message: " Sending cart data...",
+          })
+        );
+        await axios.put("https://redux-ccf54-default-rtdb.firebaseio.com/cart.json", cart);
+        dispatch(
+          uiActions.showNotification({
+            status: "success",
+            title: "Success",
+            message: " Cart data send successfully.",
+          })
+        );
+
         // Use Axios instead of fetch
-        setStatus("success");
       } catch (error) {
         console.error(error);
-        setStatus("failed");
+        dispatch(
+          uiActions.showNotification({
+            status: "failed",
+            title: "Failed",
+            message: " Failed sending cart data...",
+          })
+        );
       }
     }
-    sendCartData();
-  }, [cart]);
+
+    if (isInitial) {
+      isInitial = false;
+      return;
+    }
+
+    if (cart.changed) {
+      sendCartData();
+    }
+  }, [cart, dispatch]);
+
+  useEffect(() => {
+    dispatch(fetchCartData());
+  }, []);
 
   return (
-    <Layout>
-      {status === "success" && (
+    <Fragment>
+      {notification && (
         <Notification
-          status={"success"}
-          title={"Success"}
-          message={"Sent Cart Data Successfully!"}
+          status={notification.status}
+          title={notification.title}
+          message={notification.message}
         />
       )}
-      {status === "sending" && (
-        <Notification title={"Sending"} message={"Sending Cart Data ...!"} />
-      )}
-      {status === "failed" && (
-        <Notification status={"error"} title={"Failed"} message={"Sent Cart Data Failed!"} />
-      )}
-      {ui.cartIsVisible && <Cart />}
-      <Products />
-    </Layout>
+      <Layout>
+        {ui.cartIsVisible && <Cart />}
+        <Products />
+      </Layout>
+    </Fragment>
   );
 }
 
